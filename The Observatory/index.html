@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Observatory - からだ観測所</title>
+  
+  <!-- ▼ スマホアプリとして扱うための追加設定 ▼ -->
+  <!-- 1. フルスクリーン表示（URLバーを消す） -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- 2. スマホ上部の時計/バッテリー領域の色を「宇宙色（#172554）」に合わせる -->
+  <meta name="theme-color" content="#172554">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <!-- 3. ホーム画面に置いた時の短いアプリ名 -->
+  <meta name="apple-mobile-web-app-title" content="観測所">
+  
+  <!-- 4. アプリアイコンの指定（※後述） -->
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="icon" href="icon.png">
+  <!-- ▲ ここまで ▲ -->
+
+  <!-- Tailwind CSS の読み込み -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React, ReactDOM, Babel の読み込み（環境構築なしでReactを動かす魔法） -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- 画像保存用ライブラリ（html2canvas） -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    /* 全体のスクロール禁止などの基本設定 */
+    body { margin: 0; overflow: hidden; background-color: #172554; touch-action: none; }
+    
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    
+    @keyframes drawLine { from { stroke-dashoffset: 100; opacity: 0; } to { stroke-dashoffset: 0; opacity: 1; } }
+    .line-draw-animation { stroke-dasharray: 100; animation: drawLine 1s ease-out forwards; }
+    
+    .custom-scrollbar::-webkit-scrollbar { width: 2px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+  </style>
+</head>
+<body>
+  <!-- Reactアプリが展開される場所 -->
+  <div id="root"></div>
+
+  <!-- Reactのコード（Babelで翻訳して実行） -->
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // --- 背景の星空コンポーネント ---
+    const StarryBackground = () => {
+      const [stars, setStars] = useState([]);
+
+      useEffect(() => {
+        const generatedStars = Array.from({ length: 150 }).map(() => ({
+          id: Math.random(),
+          x: Math.random() * 100,
+          y: Math.random() * 100,
+          size: Math.random() * 2 + 0.5,
+          opacity: Math.random() * 0.8 + 0.2,
+          animationDuration: Math.random() * 3 + 2,
+        }));
+        setStars(generatedStars);
+      }, []);
+
+      return (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none bg-gradient-to-b from-blue-950 via-blue-900 to-blue-800 z-0">
+          {stars.map((star) => (
+            <div
+              key={star.id}
+              className="absolute bg-white rounded-full animate-pulse"
+              style={{
+                left: `${star.x}%`,
+                top: `${star.y}%`,
+                width: `${star.size}px`,
+                height: `${star.size}px`,
+                opacity: star.opacity,
+                animationDuration: `${star.animationDuration}s`,
+                animationIterationCount: 'infinite',
+                animationDirection: 'alternate',
+              }}
+            />
+          ))}
+        </div>
+      );
+    };
+
+    // --- 観測対象の身体の部位（星） ---
+    const BODY_STARS = [
+      // 表面・体幹・頭部
+      { id: 'head', name: 'あたま', x: 50, y: 10, depth: 'front' },
+      { id: 'eyes', name: 'め', x: 50, y: 16, depth: 'front' },
+      { id: 'jaw', name: 'あご', x: 50, y: 22, depth: 'front' },
+      { id: 'throat', name: 'のど', x: 50, y: 28, depth: 'front' },
+      { id: 'chest', name: 'むね', x: 50, y: 36, depth: 'front' },
+      { id: 'stomach', name: 'みぞおち', x: 50, y: 46, depth: 'front' },
+      { id: 'belly', name: 'おなか', x: 50, y: 56, depth: 'front' },
+      
+      // 表面・四肢
+      { id: 'l_shoulder', name: '左かた', x: 28, y: 32, depth: 'front' },
+      { id: 'r_shoulder', name: '右かた', x: 72, y: 32, depth: 'front' },
+      { id: 'l_elbow', name: '左ひじ', x: 18, y: 44, depth: 'front' },
+      { id: 'r_elbow', name: '右ひじ', x: 82, y: 44, depth: 'front' },
+      { id: 'l_wrist', name: '左てくび', x: 14, y: 54, depth: 'front' },
+      { id: 'r_wrist', name: '右てくび', x: 86, y: 54, depth: 'front' },
+      { id: 'l_hand', name: '左て', x: 10, y: 62, depth: 'front' },
+      { id: 'r_hand', name: '右て', x: 90, y: 62, depth: 'front' },
+      { id: 'l_hip', name: '左こし', x: 35, y: 63, depth: 'front' },
+      { id: 'r_hip', name: '右こし', x: 65, y: 63, depth: 'front' },
+      { id: 'l_groin', name: '左そけい', x: 42, y: 66, depth: 'front' },
+      { id: 'r_groin', name: '右そけい', x: 58, y: 66, depth: 'front' },
+      { id: 'l_knee', name: '左ひざ', x: 30, y: 76, depth: 'front' },
+      { id: 'r_knee', name: '右ひざ', x: 70, y: 76, depth: 'front' },
+      { id: 'l_ankle', name: '左足首', x: 28, y: 88, depth: 'front' },
+      { id: 'r_ankle', name: '右足首', x: 72, y: 88, depth: 'front' },
+      { id: 'l_sole', name: '左足裏', x: 25, y: 95, depth: 'front' },
+      { id: 'r_sole', name: '右足裏', x: 75, y: 95, depth: 'front' },
+
+      // 背面・深部
+      { id: 'occiput', name: '後頭部', x: 50, y: 6, depth: 'back' },
+      { id: 'upper_back', name: '背中', x: 50, y: 41, depth: 'back' },
+      { id: 'sacrum', name: '仙骨', x: 50, y: 68, depth: 'back' },
+      { id: 'l_scapula', name: '左けんこう骨', x: 38, y: 35, depth: 'back' },
+      { id: 'r_scapula', name: '右けんこう骨', x: 62, y: 35, depth: 'back' },
+
+      // 隠し星
+      { id: 'space_above', name: 'あたまの上の空間', x: 50, y: 2, depth: 'hidden' },
+      { id: 'tanden_deep', name: 'からだの奥の奥', x: 50, y: 61, depth: 'hidden' },
+      { id: 'gravity', name: '地球の引力', x: 50, y: 99, depth: 'hidden' },
+    ];
+
+    const App = () => {
+      const [constellation, setConstellation] = useState([]);
+      const [activeStar, setActiveStar] = useState(null);
+      const [inputText, setInputText] = useState('');
+      const [pulsingStarId, setPulsingStarId] = useState(null);
+      const [rippleStarId, setRippleStarId] = useState(null);
+      const [isNaming, setIsNaming] = useState(false);
+      const [constellationName, setConstellationName] = useState('');
+      const [savedName, setSavedName] = useState('');
+      const [isDownloading, setIsDownloading] = useState(false);
+
+      useEffect(() => {
+        const interval = setInterval(() => {
+          const unobservedStars = BODY_STARS.filter(
+            star => !constellation.some(c => c.starId === star.id)
+          );
+          if (unobservedStars.length > 0) {
+            const randomStar = unobservedStars[Math.floor(Math.random() * unobservedStars.length)];
+            setPulsingStarId(randomStar.id);
+            setTimeout(() => setPulsingStarId(null), 1500);
+          }
+        }, 3000);
+        return () => clearInterval(interval);
+      }, [constellation]);
+
+      const handleStarClick = (star) => {
+        setActiveStar(star);
+        setInputText('');
+        setPulsingStarId(null);
+        setRippleStarId(star.id);
+        setTimeout(() => setRippleStarId(null), 1000);
+      };
+
+      const handleSaveObservation = () => {
+        if (!activeStar) return;
+        setConstellation([...constellation, { 
+          starId: activeStar.id, 
+          text: inputText || '（ただ観測した）',
+          timestamp: Date.now()
+        }]);
+        setActiveStar(null);
+      };
+
+      const handleSaveConstellationName = () => {
+        if (!constellationName) return;
+        setSavedName(constellationName);
+        setIsNaming(false);
+      };
+
+      const handleReset = () => {
+        setConstellation([]);
+        setActiveStar(null);
+        setSavedName('');
+        setConstellationName('');
+      };
+
+      const handleDownload = async () => {
+        setIsDownloading(true);
+        setTimeout(async () => {
+          try {
+            const captureArea = document.getElementById('capture-area');
+            const canvas = await window.html2canvas(captureArea, {
+              backgroundColor: '#172554',
+              scale: 2,
+              ignoreElements: (element) => element.classList.contains('no-capture')
+            });
+            const url = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `The_Observatory_${savedName || 'log'}.png`;
+            a.click();
+          } catch (error) {
+            console.error('Download failed:', error);
+          } finally {
+            setIsDownloading(false);
+          }
+        }, 200);
+      };
+
+      return (
+        <div id="capture-area" className="relative w-full h-screen font-sans overflow-hidden bg-blue-950 select-none">
+          <StarryBackground />
+
+          <div className="absolute top-6 left-0 w-full text-center z-20 pointer-events-none fade-in">
+            <h2 className="text-yellow-500 font-serif text-xl tracking-wider mb-1">The Observatory</h2>
+            <h1 className="text-white/80 text-xs font-light tracking-widest leading-relaxed">
+              {savedName ? (
+                 <span className="text-yellow-400 font-serif text-lg tracking-widest">{savedName}</span>
+              ) : (
+                <React.Fragment>
+                  気になる星をタップして、線を引く。<br/>
+                  <span className="opacity-50 text-[10px]">時折瞬く星は、まだ光が当たっていない場所。</span>
+                </React.Fragment>
+              )}
+            </h1>
+          </div>
+
+          <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
+            {constellation.map((record, index) => {
+              if (index === 0) return null;
+              const prevStar = BODY_STARS.find(s => s.id === constellation[index - 1].starId);
+              const currentStar = BODY_STARS.find(s => s.id === record.starId);
+              if (!prevStar || !currentStar) return null;
+              return (
+                <line
+                  key={`line-${index}`}
+                  x1={`${prevStar.x}%`}
+                  y1={`${prevStar.y}%`}
+                  x2={`${currentStar.x}%`}
+                  y2={`${currentStar.y}%`}
+                  stroke="rgba(253, 224, 71, 0.4)"
+                  strokeWidth="1"
+                  strokeDasharray="2 3"
+                  className="line-draw-animation"
+                />
+              );
+            })}
+          </svg>
+
+          <div className="absolute inset-0 z-20 mt-8">
+            {BODY_STARS.map((star) => {
+              const isObserved = constellation.some(c => c.starId === star.id);
+              const isLatest = constellation.length > 0 && constellation[constellation.length - 1].starId === star.id;
+              const isPulsing = pulsingStarId === star.id;
+              const isBack = star.depth === 'back';
+              const isHidden = star.depth === 'hidden';
+
+              return (
+                <div
+                  key={star.id}
+                  className={`absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center group cursor-pointer p-3 transition-opacity duration-1000 ${
+                    (isHidden && !isObserved && !isPulsing) ? 'opacity-0' : 
+                    (isBack && !isObserved) ? 'opacity-40 hover:opacity-100' : 
+                    'opacity-100'
+                  }`}
+                  style={{ left: `${star.x}%`, top: `${star.y}%` }}
+                  onClick={() => handleStarClick(star)}
+                >
+                  <span className={`text-[9px] tracking-widest mb-1 transition-all duration-500 ${
+                    isObserved ? 'text-white/60' : 
+                    isHidden ? 'opacity-0' : 
+                    'text-transparent group-hover:text-white/50'
+                  }`}>
+                    {star.name}
+                  </span>
+                  
+                  <div className="relative">
+                    {(isObserved || isPulsing) && (
+                      <div className={`absolute -inset-2.5 rounded-full ${isObserved ? 'bg-yellow-400/20 animate-pulse' : 'bg-white/20 animate-ping'}`}></div>
+                    )}
+                    {rippleStarId === star.id && (
+                      <div className="absolute -inset-6 rounded-full border border-yellow-300 animate-ping opacity-50"></div>
+                    )}
+                    <div className={`rounded-full transition-all duration-300 ${
+                      isLatest ? 'w-3 h-3 bg-yellow-300 shadow-[0_0_12px_rgba(253,224,71,0.8)]' : 
+                      isObserved ? 'w-2 h-2 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 
+                      isHidden ? 'w-1 h-1 bg-white/10' : 
+                      isBack ? 'w-1 h-1 bg-white/20 group-hover:bg-white/60' : 
+                      'w-1.5 h-1.5 bg-white/30 group-hover:bg-white/80' 
+                    }`}></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {constellation.length > 0 && (
+            <div className="absolute bottom-6 left-6 z-20 fade-in bg-blue-950/40 p-4 rounded-xl backdrop-blur-sm border border-white/5 w-64 flex flex-col">
+              <div className="text-white/40 text-xs tracking-widest mb-3 font-serif shrink-0">Observation Log</div>
+              
+              <div 
+                className={`flex flex-col space-y-1.5 pr-4 mb-4 ${isDownloading ? 'overflow-visible' : 'overflow-y-auto custom-scrollbar'}`}
+                style={{ maxHeight: isDownloading ? 'none' : '50vh' }}
+              >
+                {constellation.map((record, i) => {
+                  const starName = BODY_STARS.find(s => s.id === record.starId)?.name;
+                  return (
+                    <div key={i} className="text-white/80 text-xs tracking-wide flex items-center space-x-2">
+                      <span className="text-yellow-500/80 text-[10px]">●</span>
+                      <span className="opacity-60 min-w-[3rem]">{starName}</span>
+                      <span className="opacity-40">-</span>
+                      <span>{record.text}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <div className="border-t border-white/10 pt-3 flex flex-col items-center">
+                {savedName ? (
+                  <div className="flex flex-col items-center w-full">
+                    <div className="text-yellow-400 text-sm tracking-widest font-serif mb-4">
+                      {savedName}
+                    </div>
+                    <button 
+                      onClick={handleDownload}
+                      disabled={isDownloading}
+                      className="no-capture w-full py-2 bg-yellow-500/20 hover:bg-yellow-500/40 border border-yellow-500/50 rounded text-yellow-100 text-xs tracking-widest transition-colors mb-3 flex items-center justify-center space-x-2"
+                    >
+                      <span>{isDownloading ? '生成中...' : '記録を持ち帰る（画像保存）'}</span>
+                    </button>
+                  </div>
+                ) : constellation.length >= 3 ? (
+                  <button 
+                    onClick={() => setIsNaming(true)}
+                    className="no-capture w-full py-2 bg-white/10 hover:bg-white/20 rounded text-white/90 text-xs tracking-widest transition-colors mb-2"
+                  >
+                    この星座に名前をつける
+                  </button>
+                ) : (
+                  <div className="text-white/30 text-[10px] tracking-widest mb-2 text-center no-capture">
+                    星を3つ以上繋ぐと<br/>星座の名前をつけられます
+                  </div>
+                )}
+                <button onClick={handleReset} className="no-capture text-white/30 hover:text-white/60 text-[10px] tracking-widest transition-colors border-b border-white/20 pb-0.5 mt-1">
+                  星図をリセット
+                </button>
+              </div>
+            </div>
+          )}
+
+          {isNaming && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-950/80 backdrop-blur-md fade-in">
+              <div className="bg-white/5 border border-white/10 p-8 rounded-2xl w-80 text-center shadow-2xl relative overflow-hidden">
+                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                 <h3 className="text-yellow-500/80 font-serif text-sm tracking-wider mb-2 relative z-10">Name your constellation</h3>
+                 <p className="text-white/90 text-sm tracking-widest mb-8 relative z-10 leading-relaxed">
+                   今日、あなたが観測した<br/>この感覚の繋がりに<br/>名前をつけるとしたら？
+                 </p>
+                 <div className="relative z-10 flex items-center justify-center mb-10">
+                   <input
+                     type="text"
+                     value={constellationName}
+                     onChange={(e) => setConstellationName(e.target.value)}
+                     placeholder="例：鳥のように軽い座"
+                     className="w-full bg-transparent border-b border-white/30 text-white text-center text-lg pb-2 focus:outline-none focus:border-yellow-400/80 transition-colors placeholder-white/20"
+                     autoFocus
+                     onKeyDown={(e) => {
+                       if (e.key === 'Enter') handleSaveConstellationName();
+                     }}
+                   />
+                   <span className="text-white/50 text-sm ml-2">座</span>
+                 </div>
+                 <div className="flex justify-center space-x-8 relative z-10">
+                   <button 
+                     onClick={() => setIsNaming(false)}
+                     className="text-white/40 hover:text-white/80 tracking-widest text-xs transition-colors"
+                   >
+                     やめる
+                   </button>
+                   <button 
+                     onClick={handleSaveConstellationName}
+                     className="text-white/90 hover:text-yellow-400 tracking-widest text-xs font-bold transition-colors"
+                   >
+                     名前を刻む
+                   </button>
+                 </div>
+              </div>
+            </div>
+          )}
+
+          {activeStar && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-950/70 backdrop-blur-md fade-in">
+              <div className="bg-white/5 border border-white/10 p-8 rounded-2xl w-80 text-center shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <h3 className="text-yellow-500/80 font-serif text-sm tracking-wider mb-2 relative z-10">Observe</h3>
+                <p className="text-white/90 text-lg tracking-widest mb-8 relative z-10 leading-relaxed">
+                  「{activeStar.name}」は、<br/>今どんな感じ？
+                </p>
+                <input
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  placeholder="言葉を置く（空欄でも可）"
+                  className="w-full bg-transparent border-b border-white/30 text-white text-center text-base pb-2 focus:outline-none focus:border-yellow-400/80 transition-colors mb-10 placeholder-white/20 relative z-10"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveObservation();
+                  }}
+                />
+                <div className="flex justify-center space-x-8 relative z-10">
+                  <button 
+                    onClick={() => setActiveStar(null)}
+                    className="text-white/40 hover:text-white/80 tracking-widest text-xs transition-colors"
+                  >
+                    やめる
+                  </button>
+                  <button 
+                    onClick={handleSaveObservation}
+                    className="text-white/90 hover:text-yellow-400 tracking-widest text-xs font-bold transition-colors"
+                  >
+                    星を置く
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // Reactアプリを画面（<div id="root">）に表示する
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
