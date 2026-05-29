@@ -132,12 +132,12 @@
     ];
 
     const nextSteps = [
-     'まず記録だけする',
-  '小さなセルフケアを試す',
-  '必要なら相談できる場所を探す',
-  '学べる場を探してみる',
-  '今は何もしないで様子を見る',
-       ];
+      'まず記録だけする',
+      '小さなセルフケアを試す',
+      '必要なら相談できる場所を探す',
+      '学べる場を探してみる',
+      '今は何もしないで様子を見る',
+    ];
 
     function StarryBackground() {
       const [stars, setStars] = useState([]);
@@ -192,33 +192,33 @@
       );
     }
 
-   function ChoiceField({ label, value, onChange, options }) {
-  return (
-    <div className="block">
-      <span className="block text-white/80 text-sm tracking-wide mb-3">{label}</span>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {options.map((option) => {
-          const isSelected = value === option;
+    function ChoiceField({ label, value, onChange, options }) {
+      return (
+        <div className="block">
+          <span className="block text-white/80 text-sm tracking-wide mb-3">{label}</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {options.map((option) => {
+              const isSelected = value === option;
 
-          return (
-            <button
-              key={option}
-              type="button"
-              onClick={() => onChange(option)}
-              className={`w-full rounded-lg border px-4 py-3 text-left text-sm leading-6 transition-colors ${
-                isSelected
-                  ? 'border-yellow-300 bg-yellow-300/20 text-yellow-100'
-                  : 'border-white/15 bg-white/10 text-white/75 hover:border-white/35 hover:bg-white/15'
-              }`}
-            >
-              {option}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => onChange(option)}
+                  className={`w-full rounded-lg border px-4 py-3 text-left text-sm leading-6 transition-colors ${
+                    isSelected
+                      ? 'border-yellow-300 bg-yellow-300/20 text-yellow-100'
+                      : 'border-white/15 bg-white/10 text-white/75 hover:border-white/35 hover:bg-white/15'
+                  }`}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
 
     function ObservatorySheet() {
       const [sheet, setSheet] = useState(INITIAL_SHEET);
@@ -235,6 +235,23 @@
       };
 
       const valueOrBlank = (value) => value || 'まだ言葉になっていません';
+
+      const downloadMemoImage = async () => {
+        const memo = document.getElementById('sheet-memo');
+        if (!memo) return;
+
+        const canvas = await window.html2canvas(memo, {
+          backgroundColor: '#172554',
+          scale: 2,
+          ignoreElements: (element) => element.classList.contains('no-capture'),
+        });
+
+        const url = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'karada_observation_memo.png';
+        a.click();
+      };
 
       return (
         <main className="relative z-20 min-h-[100svh] overflow-y-auto px-5 py-24 sm:px-8">
@@ -254,135 +271,154 @@
               </p>
             </div>
 
-      <div className="rounded-lg border border-yellow-200/20 bg-yellow-100/10 px-4 py-4 mb-8 text-white/75 text-xs sm:text-sm leading-6 space-y-3">
-  <p>
-    The Observatoryは、身体の状態を診断するものではありません。
-  </p>
-  <p>
-    今の身体に起きているサインを、場面・暮らし・試してきたこと・続かなかった理由と一緒に観測し、自分に合う次の一歩を選ぶための記録ツールです。
-  </p>
-  <p>
-    医療的な診断や治療を目的としたものではありません。強い痛み、しびれ、急な症状、日常生活に支障がある場合は、医療機関に相談してください。
-  </p>
-</div>
+            <div className="rounded-lg border border-yellow-200/20 bg-yellow-100/10 px-4 py-4 mb-8 text-white/75 text-xs sm:text-sm leading-6 space-y-3">
+              <p>The Observatoryは、身体の状態を診断するものではありません。</p>
+              <p>
+                今の身体に起きているサインを、場面・暮らし・試してきたこと・続かなかった理由と一緒に観測し、
+                自分に合う次の一歩を選ぶための記録ツールです。
+              </p>
+              <p>
+                医療的な診断や治療を目的としたものではありません。
+                強い痛み、しびれ、急な症状、日常生活に支障がある場合は、医療機関に相談してください。
+              </p>
+            </div>
 
-           <div className="space-y-6 rounded-lg border border-white/15 bg-blue-950/35 backdrop-blur-md p-5 sm:p-8 shadow-2xl">
-  <TextAreaField
-    label="1. 今、身体の中でいちばん気になっているサインは何ですか？"
-    value={sheet.concern}
-    onChange={(value) => updateSheet('concern', value)}
-    placeholder="例：肩が上がりにくい、歩く時にぎこちない、呼吸が浅い、足首が重い感じがする"
-  />
+            <div className="space-y-6 rounded-lg border border-white/15 bg-blue-950/35 backdrop-blur-md p-5 sm:p-8 shadow-2xl">
+              <TextAreaField
+                label="1. 今、身体の中でいちばん気になっているサインは何ですか？"
+                value={sheet.concern}
+                onChange={(value) => updateSheet('concern', value)}
+                placeholder="例：肩が上がりにくい、歩く時にぎこちない、呼吸が浅い、足首が重い感じがする"
+              />
 
-  <TextAreaField
-    label="2. そのサインは、どんな場面で出やすいですか？"
-    value={sheet.scene}
-    onChange={(value) => updateSheet('scene', value)}
-    placeholder="例：朝起きた時、階段を上る時、仕事の後、緊張している時、長く座った後"
-  />
+              <TextAreaField
+                label="2. そのサインは、どんな場面で出やすいですか？"
+                value={sheet.scene}
+                onChange={(value) => updateSheet('scene', value)}
+                placeholder="例：朝起きた時、階段を上る時、仕事の後、緊張している時、長く座った後"
+              />
 
-  <TextAreaField
-    label="3. その状態があることで、暮らしの中で何が少しやりにくくなっていますか？"
-    value={sheet.avoid}
-    onChange={(value) => updateSheet('avoid', value)}
-    placeholder="例：出かけるのが億劫になる、運動を避ける、人前で動きたくない、長く歩く予定を入れにくい"
-  />
+              <TextAreaField
+                label="3. その状態があることで、暮らしの中で何が少しやりにくくなっていますか？"
+                value={sheet.avoid}
+                onChange={(value) => updateSheet('avoid', value)}
+                placeholder="例：出かけるのが億劫になる、運動を避ける、人前で動きたくない、長く歩く予定を入れにくい"
+              />
 
-  <TextAreaField
-    label="4. もし身体が今より少し動きやすくなったら、どんなことをしてみたいですか？"
-    value={sheet.hope}
-    onChange={(value) => updateSheet('hope', value)}
-    placeholder="例：旅行を楽しみたい、山を歩きたい、軽く踊りたい、疲れを気にせず仕事したい"
-  />
+              <TextAreaField
+                label="4. もし身体が今より少し動きやすくなったら、どんなことをしてみたいですか？"
+                value={sheet.hope}
+                onChange={(value) => updateSheet('hope', value)}
+                placeholder="例：旅行を楽しみたい、山を歩きたい、軽く踊りたい、疲れを気にせず仕事したい"
+              />
 
-  <TextAreaField
-    label="5. これまで、その身体のために試してきたことはありますか？"
-    value={sheet.tried}
-    onChange={(value) => updateSheet('tried', value)}
-    placeholder="例：ストレッチ、整体、運動、動画を見てセルフケア、マッサージ、歩き方を意識する"
-  />
+              <TextAreaField
+                label="5. これまでに、試してきたことはありますか？"
+                value={sheet.tried}
+                onChange={(value) => updateSheet('tried', value)}
+                placeholder="例：ストレッチ、整体、運動、動画を見てセルフケア、マッサージ、歩き方を意識する"
+              />
 
-  <TextAreaField
-    label="6. それが続かなかった理由や、しっくりこなかった点は何でしたか？"
-    value={sheet.limit}
-    onChange={(value) => updateSheet('limit', value)}
-    placeholder="例：合っているかわからない、痛くなる、時間が取れない、変化がわからない、習慣にならない"
-  />
+              <TextAreaField
+                label="6. それが続かなかった理由や、しっくりこなかった点は何でしたか？"
+                value={sheet.limit}
+                onChange={(value) => updateSheet('limit', value)}
+                placeholder="例：合っているかわからない、痛くなる、時間が取れない、変化がわからない、習慣にならない"
+              />
 
-  <TextAreaField
-    label="7. その状態について、『自分のせいかも』と思っていたことはありますか？"
-    value={sheet.selfBlame}
-    onChange={(value) => updateSheet('selfBlame', value)}
-    placeholder="例：年齢のせい、運動不足のせい、努力が足りない、身体が硬いから仕方ないと思っていた"
-  />
+              <TextAreaField
+                label="7. その状態について、『〇〇のせいかも』と思っていたことはありますか？"
+                value={sheet.selfBlame}
+                onChange={(value) => updateSheet('selfBlame', value)}
+                placeholder="例：年齢のせい、運動不足のせい、努力が足りない、身体が硬いから仕方ないと思っていた"
+              />
 
-  <TextAreaField
-    label="8. もしかすると、性格や根性ではなく、身体の使い方や構造のクセかもしれないと思うことはありますか？"
-    value={sheet.structure}
-    onChange={(value) => updateSheet('structure', value)}
-    placeholder="例：力の入り方、姿勢、呼吸、関節の動き方、重心、いつも同じ場所で頑張っている感じ"
-  />
+              <TextAreaField
+                label="8. もしかすると、性格や根性ではなく、身体の使い方や構造のクセかもしれないと思うことはありますか？"
+                value={sheet.structure}
+                onChange={(value) => updateSheet('structure', value)}
+                placeholder="例：力の入り方、姿勢、呼吸、関節の動き方、重心、いつも同じ場所で頑張っている感じ"
+              />
 
- <ChoiceField
-    label="9. 今日、小さく観測してみたい身体の星はどこですか？"
-    value={sheet.point}
-    onChange={(value) => updateSheet('point', value)}
-    options={observationPoints}
-  />
+              <ChoiceField
+                label="9. 今日、小さく観測してみたい身体の星はどこですか？"
+                value={sheet.point}
+                onChange={(value) => updateSheet('point', value)}
+                options={observationPoints}
+              />
 
-  <ChoiceField
-    label="10. 今の自分にちょうどよさそうな次の一歩はどれですか？"
-    value={sheet.nextStep}
-    onChange={(value) => updateSheet('nextStep', value)}
-    options={nextSteps}
-  />
+              <ChoiceField
+                label="10. 今の自分にちょうどよさそうな次の一歩はどれですか？"
+                value={sheet.nextStep}
+                onChange={(value) => updateSheet('nextStep', value)}
+                options={nextSteps}
+              />
 
-  <div className="flex flex-col sm:flex-row gap-3 pt-2">
-    <button
-      type="button"
-      onClick={() => setShowMemo(true)}
-      className="w-full sm:w-auto rounded-lg bg-yellow-300 px-5 py-3 text-blue-950 text-sm font-bold tracking-widest hover:bg-yellow-200 transition-colors"
-    >
-      観測メモをつくる
-    </button>
-    <button
-      type="button"
-      onClick={resetSheet}
-      className="w-full sm:w-auto rounded-lg border border-white/20 px-5 py-3 text-white/70 text-sm tracking-widest hover:text-white hover:border-white/40 transition-colors"
-    >
-      入力をリセット
-    </button>
-  </div>
-</div>
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowMemo(true)}
+                  className="w-full sm:w-auto rounded-lg bg-yellow-300 px-5 py-3 text-blue-950 text-sm font-bold tracking-widest hover:bg-yellow-200 transition-colors"
+                >
+                  観測メモをつくる
+                </button>
+                <button
+                  type="button"
+                  onClick={resetSheet}
+                  className="w-full sm:w-auto rounded-lg border border-white/20 px-5 py-3 text-white/70 text-sm tracking-widest hover:text-white hover:border-white/40 transition-colors"
+                >
+                  入力をリセット
+                </button>
+              </div>
+            </div>
+
             {showMemo && (
-              <section className="mt-8 rounded-lg border border-yellow-200/25 bg-white/10 backdrop-blur-md p-5 sm:p-8 shadow-2xl fade-in">
-                <p className="text-yellow-400 font-serif text-lg tracking-wider mb-2">Observation Memo</p>
-                <h2 className="text-white text-xl sm:text-2xl font-light tracking-widest mb-6">今日の観測メモ</h2>
+              <section
+                id="sheet-memo"
+                className="mt-8 rounded-lg border border-yellow-200/25 bg-white/10 backdrop-blur-md p-5 sm:p-8 shadow-2xl fade-in"
+              >
+                <p className="text-yellow-400 font-serif text-lg tracking-wider mb-2">
+                  Observation Memo
+                </p>
+                <h2 className="text-white text-xl sm:text-2xl font-light tracking-widest mb-6">
+                  今日の観測メモ
+                </h2>
 
                 <div className="space-y-4 text-white/85 text-sm sm:text-base leading-7">
                   <p><span className="text-white/50">今いちばん気になっていること：</span>{valueOrBlank(sheet.concern)}</p>
                   <p><span className="text-white/50">それが出やすい場面：</span>{valueOrBlank(sheet.scene)}</p>
-                  <p><span className="text-white/50">避けていること：</span>{valueOrBlank(sheet.avoid)}</p>
-                  <p><span className="text-white/50">変わったらしたいこと：</span>{valueOrBlank(sheet.hope)}</p>
-                  <p><span className="text-white/50">今まで試したこと：</span>{valueOrBlank(sheet.tried)}</p>
-                  <p><span className="text-white/50">続かなかった理由・限界：</span>{valueOrBlank(sheet.limit)}</p>
+                  <p><span className="text-white/50">やりにくくなっていること：</span>{valueOrBlank(sheet.avoid)}</p>
+                  <p><span className="text-white/50">動きやすくなったらしてみたいこと：</span>{valueOrBlank(sheet.hope)}</p>
+                  <p><span className="text-white/50">これまで試してきたこと：</span>{valueOrBlank(sheet.tried)}</p>
+                  <p><span className="text-white/50">続かなかった理由・しっくりこなかった点：</span>{valueOrBlank(sheet.limit)}</p>
                   <p><span className="text-white/50">自分のせいにしていたこと：</span>{valueOrBlank(sheet.selfBlame)}</p>
-                  <p><span className="text-white/50">構造や使い方として観測したいこと：</span>{valueOrBlank(sheet.structure)}</p>
+                  <p><span className="text-white/50">使い方や構造として観測したいこと：</span>{valueOrBlank(sheet.structure)}</p>
                   <p><span className="text-white/50">今日の観測ポイント：</span>{valueOrBlank(sheet.point)}</p>
                   <p><span className="text-white/50">次の一歩：</span>{valueOrBlank(sheet.nextStep)}</p>
                 </div>
 
                 <div className="mt-7 border-t border-white/15 pt-5 text-white/75 text-sm sm:text-base leading-7">
                   <p>
-                    今の観測では、{sheet.point ? `「${sheet.point}」` : '身体の中で気になっている場所'}にやさしく注目してみるとよさそうです。
+                    今の観測では、
+                    {sheet.point ? `「${sheet.point}」` : '身体の中で気になっている場所'}
+                    にやさしく注目してみるとよさそうです。
                   </p>
-                 <p className="mt-3">
-  すぐに変えようとするよりも、出やすい場面や、避けていることを記録してみるのもよさそうです。
-  次の一歩は「
-  {valueOrBlank(sheet.nextStep)}
-  」として、今の自分に合う距離感で選んでみてください。
-</p>
-               
+                  <p className="mt-3">
+                    すぐに変えようとするよりも、出やすい場面や、暮らしの中で少しやりにくくなっていることを記録してみるのもよさそうです。
+                    次の一歩は「
+                    {valueOrBlank(sheet.nextStep)}
+                    」として、今の自分に合う距離感で選んでみてください。
+                  </p>
+                </div>
+
+                <div className="mt-6 no-capture">
+                  <button
+                    type="button"
+                    onClick={downloadMemoImage}
+                    className="w-full rounded-lg bg-yellow-300 px-5 py-3 text-blue-950 text-sm font-bold tracking-widest hover:bg-yellow-200 transition-colors"
+                  >
+                    観測メモを画像で保存
+                  </button>
                 </div>
               </section>
             )}
@@ -637,7 +673,11 @@
                   </div>
                 )}
 
-                <button type="button" onClick={handleReset} className="no-capture text-white/30 hover:text-white/60 text-[10px] tracking-widest transition-colors border-b border-white/20 pb-0.5 mt-1">
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="no-capture text-white/30 hover:text-white/60 text-[10px] tracking-widest transition-colors border-b border-white/20 pb-0.5 mt-1"
+                >
                   星図をリセット
                 </button>
               </div>
@@ -646,15 +686,15 @@
 
           {isNaming && (
             <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-950/80 backdrop-blur-md fade-in px-5">
-              <div className="bg-white/5 border border-white/10 p-8 rounded-lg w-full max-w-sm text-center shadow-2xl relative overflow-hidden">
-                <h3 className="text-yellow-400 font-serif text-sm tracking-wider mb-2 relative z-10">
+              <div className="bg-white/5 border border-white/10 p-8 rounded-lg w-full max-w-sm text-center shadow-2xl">
+                <h3 className="text-yellow-400 font-serif text-sm tracking-wider mb-2">
                   Name your constellation
                 </h3>
-                <p className="text-white/90 text-sm tracking-widest mb-8 relative z-10 leading-relaxed">
+                <p className="text-white/90 text-sm tracking-widest mb-8 leading-relaxed">
                   今日、あなたが観測した<br />この感覚の繋がりに<br />名前をつけるとしたら？
                 </p>
 
-                <div className="relative z-10 flex items-center justify-center mb-10">
+                <div className="flex items-center justify-center mb-10">
                   <input
                     type="text"
                     value={constellationName}
@@ -669,11 +709,19 @@
                   <span className="text-white/50 text-sm ml-2">座</span>
                 </div>
 
-                <div className="flex justify-center gap-8 relative z-10">
-                  <button type="button" onClick={() => setIsNaming(false)} className="text-white/40 hover:text-white/80 tracking-widest text-xs transition-colors">
+                <div className="flex justify-center gap-8">
+                  <button
+                    type="button"
+                    onClick={() => setIsNaming(false)}
+                    className="text-white/40 hover:text-white/80 tracking-widest text-xs transition-colors"
+                  >
                     やめる
                   </button>
-                  <button type="button" onClick={handleSaveConstellationName} className="text-white/90 hover:text-yellow-400 tracking-widest text-xs font-bold transition-colors">
+                  <button
+                    type="button"
+                    onClick={handleSaveConstellationName}
+                    className="text-white/90 hover:text-yellow-400 tracking-widest text-xs font-bold transition-colors"
+                  >
                     名前を刻む
                   </button>
                 </div>
@@ -701,10 +749,18 @@
                 />
 
                 <div className="flex justify-center gap-8">
-                  <button type="button" onClick={() => setActiveStar(null)} className="text-white/40 hover:text-white/80 tracking-widest text-xs transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => setActiveStar(null)}
+                    className="text-white/40 hover:text-white/80 tracking-widest text-xs transition-colors"
+                  >
                     やめる
                   </button>
-                  <button type="button" onClick={handleSaveObservation} className="text-white/90 hover:text-yellow-400 tracking-widest text-xs font-bold transition-colors">
+                  <button
+                    type="button"
+                    onClick={handleSaveObservation}
+                    className="text-white/90 hover:text-yellow-400 tracking-widest text-xs font-bold transition-colors"
+                  >
                     星を置く
                   </button>
                 </div>
