@@ -316,32 +316,37 @@
     placeholder="例：力の入り方、姿勢、呼吸、関節の動き方、重心、いつも同じ場所で頑張っている感じ"
   />
 
-  <ChoiceField
+ <ChoiceField
     label="9. 今日、小さく観測してみたい身体の星はどこですか？"
     value={sheet.point}
     onChange={(value) => updateSheet('point', value)}
     options={observationPoints}
   />
 
-];
   <ChoiceField
     label="10. 今の自分にちょうどよさそうな次の一歩はどれですか？"
     value={sheet.nextStep}
     onChange={(value) => updateSheet('nextStep', value)}
     options={nextSteps}
   />
+
+  <div className="flex flex-col sm:flex-row gap-3 pt-2">
+    <button
+      type="button"
+      onClick={() => setShowMemo(true)}
+      className="w-full sm:w-auto rounded-lg bg-yellow-300 px-5 py-3 text-blue-950 text-sm font-bold tracking-widest hover:bg-yellow-200 transition-colors"
+    >
+      観測メモをつくる
+    </button>
+    <button
+      type="button"
+      onClick={resetSheet}
+      className="w-full sm:w-auto rounded-lg border border-white/20 px-5 py-3 text-white/70 text-sm tracking-widest hover:text-white hover:border-white/40 transition-colors"
+    >
+      入力をリセット
+    </button>
+  </div>
 </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button type="button" onClick={() => setShowMemo(true)} className="w-full sm:w-auto rounded-lg bg-yellow-300 px-5 py-3 text-blue-950 text-sm font-bold tracking-widest hover:bg-yellow-200 transition-colors">
-                  観測メモをつくる
-                </button>
-                <button type="button" onClick={resetSheet} className="w-full sm:w-auto rounded-lg border border-white/20 px-5 py-3 text-white/70 text-sm tracking-widest hover:text-white hover:border-white/40 transition-colors">
-                  入力をリセット
-                </button>
-              </div>
-            </div>
-
             {showMemo && (
               <section className="mt-8 rounded-lg border border-yellow-200/25 bg-white/10 backdrop-blur-md p-5 sm:p-8 shadow-2xl fade-in">
                 <p className="text-yellow-400 font-serif text-lg tracking-wider mb-2">Observation Memo</p>
