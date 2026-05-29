@@ -2,19 +2,25 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Observatory｜からだ観測シート</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>The Observatory - からだ観測所</title>
+
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#172554" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="観測所" />
+  <link rel="apple-touch-icon" href="icon.png" />
+  <link rel="icon" href="icon.png" />
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
-    html,
-    body,
-    #root {
+    html, body, #root {
       margin: 0;
       min-height: 100%;
       background: #172554;
@@ -22,17 +28,12 @@
 
     body {
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow-x: hidden;
     }
 
     @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(4px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .fade-in {
@@ -40,19 +41,26 @@
     }
 
     @keyframes drawLine {
-      from {
-        stroke-dashoffset: 100;
-        opacity: 0;
-      }
-      to {
-        stroke-dashoffset: 0;
-        opacity: 1;
-      }
+      from { stroke-dashoffset: 100; opacity: 0; }
+      to { stroke-dashoffset: 0; opacity: 1; }
     }
 
     .line-draw-animation {
       stroke-dasharray: 100;
       animation: drawLine 1s ease-out forwards;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 2px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 10px;
     }
   </style>
 </head>
@@ -64,16 +72,39 @@
     const { useState, useEffect } = React;
 
     const BODY_STARS = [
-      { id: 'head', name: 'あたま', x: 50, y: 15 },
-      { id: 'throat', name: 'のど', x: 50, y: 25 },
-      { id: 'l_shoulder', name: '左かた', x: 25, y: 32 },
-      { id: 'r_shoulder', name: '右かた', x: 75, y: 32 },
-      { id: 'chest', name: 'むね', x: 50, y: 40 },
-      { id: 'stomach', name: 'みぞおち', x: 50, y: 52 },
-      { id: 'l_waist', name: '左こし', x: 35, y: 65 },
-      { id: 'r_waist', name: '右こし', x: 65, y: 65 },
-      { id: 'l_foot', name: '左あし', x: 30, y: 85 },
-      { id: 'r_foot', name: '右あし', x: 70, y: 85 },
+      { id: 'head', name: 'あたま', x: 50, y: 10, depth: 'front' },
+      { id: 'eyes', name: 'め', x: 50, y: 16, depth: 'front' },
+      { id: 'jaw', name: 'あご', x: 50, y: 22, depth: 'front' },
+      { id: 'throat', name: 'のど', x: 50, y: 28, depth: 'front' },
+      { id: 'chest', name: 'むね', x: 50, y: 36, depth: 'front' },
+      { id: 'stomach', name: 'みぞおち', x: 50, y: 46, depth: 'front' },
+      { id: 'belly', name: 'おなか', x: 50, y: 56, depth: 'front' },
+      { id: 'l_shoulder', name: '左かた', x: 28, y: 32, depth: 'front' },
+      { id: 'r_shoulder', name: '右かた', x: 72, y: 32, depth: 'front' },
+      { id: 'l_elbow', name: '左ひじ', x: 18, y: 44, depth: 'front' },
+      { id: 'r_elbow', name: '右ひじ', x: 82, y: 44, depth: 'front' },
+      { id: 'l_wrist', name: '左てくび', x: 14, y: 54, depth: 'front' },
+      { id: 'r_wrist', name: '右てくび', x: 86, y: 54, depth: 'front' },
+      { id: 'l_hand', name: '左て', x: 10, y: 62, depth: 'front' },
+      { id: 'r_hand', name: '右て', x: 90, y: 62, depth: 'front' },
+      { id: 'l_hip', name: '左こし', x: 35, y: 63, depth: 'front' },
+      { id: 'r_hip', name: '右こし', x: 65, y: 63, depth: 'front' },
+      { id: 'l_groin', name: '左そけい', x: 42, y: 66, depth: 'front' },
+      { id: 'r_groin', name: '右そけい', x: 58, y: 66, depth: 'front' },
+      { id: 'l_knee', name: '左ひざ', x: 30, y: 76, depth: 'front' },
+      { id: 'r_knee', name: '右ひざ', x: 70, y: 76, depth: 'front' },
+      { id: 'l_ankle', name: '左足首', x: 28, y: 88, depth: 'front' },
+      { id: 'r_ankle', name: '右足首', x: 72, y: 88, depth: 'front' },
+      { id: 'l_sole', name: '左足裏', x: 25, y: 95, depth: 'front' },
+      { id: 'r_sole', name: '右足裏', x: 75, y: 95, depth: 'front' },
+      { id: 'occiput', name: '後頭部', x: 50, y: 6, depth: 'back' },
+      { id: 'upper_back', name: '背中', x: 50, y: 41, depth: 'back' },
+      { id: 'sacrum', name: '仙骨', x: 50, y: 68, depth: 'back' },
+      { id: 'l_scapula', name: '左けんこう骨', x: 38, y: 35, depth: 'back' },
+      { id: 'r_scapula', name: '右けんこう骨', x: 62, y: 35, depth: 'back' },
+      { id: 'space_above', name: 'あたまの上の空間', x: 50, y: 2, depth: 'hidden' },
+      { id: 'tanden_deep', name: 'からだの奥の奥', x: 50, y: 61, depth: 'hidden' },
+      { id: 'gravity', name: '地球の引力', x: 50, y: 99, depth: 'hidden' },
     ];
 
     const INITIAL_SHEET = {
@@ -119,6 +150,7 @@
           opacity: Math.random() * 0.8 + 0.2,
           animationDuration: Math.random() * 3 + 2,
         }));
+
         setStars(generatedStars);
       }, []);
 
@@ -219,89 +251,22 @@
             </div>
 
             <div className="space-y-6 rounded-lg border border-white/15 bg-blue-950/35 backdrop-blur-md p-5 sm:p-8 shadow-2xl">
-              <TextAreaField
-                label="1. 今いちばん気になる身体のことは？"
-                value={sheet.concern}
-                onChange={(value) => updateSheet('concern', value)}
-                placeholder="例：肩が上がりにくい、歩く時にぎこちない、呼吸が浅い感じがする"
-              />
-
-              <TextAreaField
-                label="2. それはいつ・どんな場面で出ますか？"
-                value={sheet.scene}
-                onChange={(value) => updateSheet('scene', value)}
-                placeholder="例：朝起きた時、階段を上る時、仕事の後、緊張している時"
-              />
-
-              <TextAreaField
-                label="3. それがあることで、何を避けていますか？"
-                value={sheet.avoid}
-                onChange={(value) => updateSheet('avoid', value)}
-                placeholder="例：外出、運動、人前で動くこと、長時間歩くこと"
-              />
-
-              <TextAreaField
-                label="4. それが変わったら、何ができるようになりたいですか？"
-                value={sheet.hope}
-                onChange={(value) => updateSheet('hope', value)}
-                placeholder="例：旅行を楽しみたい、軽く踊りたい、楽に歩きたい"
-              />
-
-              <TextAreaField
-                label="5. 今まで何を試しましたか？"
-                value={sheet.tried}
-                onChange={(value) => updateSheet('tried', value)}
-                placeholder="例：ストレッチ、整体、運動、動画を見てセルフケア"
-              />
-
-              <TextAreaField
-                label="6. 続かなかった理由、または限界は何でしたか？"
-                value={sheet.limit}
-                onChange={(value) => updateSheet('limit', value)}
-                placeholder="例：やり方が合っているかわからない、痛くなる、習慣にならない"
-              />
-
-              <TextAreaField
-                label="7. 「自分のせい」にしていたことはありますか？"
-                value={sheet.selfBlame}
-                onChange={(value) => updateSheet('selfBlame', value)}
-                placeholder="例：年齢のせい、運動不足のせい、努力が足りないと思っていた"
-              />
-
-              <TextAreaField
-                label="8. もしかすると、身体の構造や使い方の問題かもしれないことはありますか？"
-                value={sheet.structure}
-                onChange={(value) => updateSheet('structure', value)}
-                placeholder="例：力の入り方、姿勢、呼吸、関節の動き方、身体の使い方"
-              />
-
-              <SelectField
-                label="9. 今日、小さく観測してみたい場所はどこですか？"
-                value={sheet.point}
-                onChange={(value) => updateSheet('point', value)}
-                options={observationPoints}
-              />
-
-              <SelectField
-                label="10. 次の一歩として、今の自分に合いそうなものはどれですか？"
-                value={sheet.nextStep}
-                onChange={(value) => updateSheet('nextStep', value)}
-                options={nextSteps}
-              />
+              <TextAreaField label="1. 今いちばん気になる身体のことは？" value={sheet.concern} onChange={(value) => updateSheet('concern', value)} placeholder="例：肩が上がりにくい、歩く時にぎこちない、呼吸が浅い感じがする" />
+              <TextAreaField label="2. それはいつ・どんな場面で出ますか？" value={sheet.scene} onChange={(value) => updateSheet('scene', value)} placeholder="例：朝起きた時、階段を上る時、仕事の後、緊張している時" />
+              <TextAreaField label="3. それがあることで、何を避けていますか？" value={sheet.avoid} onChange={(value) => updateSheet('avoid', value)} placeholder="例：外出、運動、人前で動くこと、長時間歩くこと" />
+              <TextAreaField label="4. それが変わったら、何ができるようになりたいですか？" value={sheet.hope} onChange={(value) => updateSheet('hope', value)} placeholder="例：旅行を楽しみたい、軽く踊りたい、楽に歩きたい" />
+              <TextAreaField label="5. 今まで何を試しましたか？" value={sheet.tried} onChange={(value) => updateSheet('tried', value)} placeholder="例：ストレッチ、整体、運動、動画を見てセルフケア" />
+              <TextAreaField label="6. 続かなかった理由、または限界は何でしたか？" value={sheet.limit} onChange={(value) => updateSheet('limit', value)} placeholder="例：やり方が合っているかわからない、痛くなる、習慣にならない" />
+              <TextAreaField label="7. 「自分のせい」にしていたことはありますか？" value={sheet.selfBlame} onChange={(value) => updateSheet('selfBlame', value)} placeholder="例：年齢のせい、運動不足のせい、努力が足りないと思っていた" />
+              <TextAreaField label="8. もしかすると、身体の構造や使い方の問題かもしれないことはありますか？" value={sheet.structure} onChange={(value) => updateSheet('structure', value)} placeholder="例：力の入り方、姿勢、呼吸、関節の動き方、身体の使い方" />
+              <SelectField label="9. 今日、小さく観測してみたい場所はどこですか？" value={sheet.point} onChange={(value) => updateSheet('point', value)} options={observationPoints} />
+              <SelectField label="10. 次の一歩として、今の自分に合いそうなものはどれですか？" value={sheet.nextStep} onChange={(value) => updateSheet('nextStep', value)} options={nextSteps} />
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowMemo(true)}
-                  className="w-full sm:w-auto rounded-lg bg-yellow-300 px-5 py-3 text-blue-950 text-sm font-bold tracking-widest hover:bg-yellow-200 transition-colors"
-                >
+                <button type="button" onClick={() => setShowMemo(true)} className="w-full sm:w-auto rounded-lg bg-yellow-300 px-5 py-3 text-blue-950 text-sm font-bold tracking-widest hover:bg-yellow-200 transition-colors">
                   観測メモをつくる
                 </button>
-                <button
-                  type="button"
-                  onClick={resetSheet}
-                  className="w-full sm:w-auto rounded-lg border border-white/20 px-5 py-3 text-white/70 text-sm tracking-widest hover:text-white hover:border-white/40 transition-colors"
-                >
+                <button type="button" onClick={resetSheet} className="w-full sm:w-auto rounded-lg border border-white/20 px-5 py-3 text-white/70 text-sm tracking-widest hover:text-white hover:border-white/40 transition-colors">
                   入力をリセット
                 </button>
               </div>
@@ -309,12 +274,8 @@
 
             {showMemo && (
               <section className="mt-8 rounded-lg border border-yellow-200/25 bg-white/10 backdrop-blur-md p-5 sm:p-8 shadow-2xl fade-in">
-                <p className="text-yellow-400 font-serif text-lg tracking-wider mb-2">
-                  Observation Memo
-                </p>
-                <h2 className="text-white text-xl sm:text-2xl font-light tracking-widest mb-6">
-                  今日の観測メモ
-                </h2>
+                <p className="text-yellow-400 font-serif text-lg tracking-wider mb-2">Observation Memo</p>
+                <h2 className="text-white text-xl sm:text-2xl font-light tracking-widest mb-6">今日の観測メモ</h2>
 
                 <div className="space-y-4 text-white/85 text-sm sm:text-base leading-7">
                   <p><span className="text-white/50">今いちばん気になっていること：</span>{valueOrBlank(sheet.concern)}</p>
@@ -331,9 +292,7 @@
 
                 <div className="mt-7 border-t border-white/15 pt-5 text-white/75 text-sm sm:text-base leading-7">
                   <p>
-                    今の観測では、
-                    {sheet.point ? `「${sheet.point}」` : '身体の中で気になっている場所'}
-                    にやさしく注目してみるとよさそうです。
+                    今の観測では、{sheet.point ? `「${sheet.point}」` : '身体の中で気になっている場所'}にやさしく注目してみるとよさそうです。
                   </p>
                   <p className="mt-3">
                     すぐに変えようとするよりも、出やすい場面や、避けていることを記録してみるのもよさそうです。
@@ -351,10 +310,35 @@
       const [constellation, setConstellation] = useState([]);
       const [activeStar, setActiveStar] = useState(null);
       const [inputText, setInputText] = useState('');
+      const [pulsingStarId, setPulsingStarId] = useState(null);
+      const [rippleStarId, setRippleStarId] = useState(null);
+      const [isNaming, setIsNaming] = useState(false);
+      const [constellationName, setConstellationName] = useState('');
+      const [savedName, setSavedName] = useState('');
+      const [isDownloading, setIsDownloading] = useState(false);
+
+      useEffect(() => {
+        const interval = setInterval(() => {
+          const unobservedStars = BODY_STARS.filter(
+            (star) => !constellation.some((item) => item.starId === star.id)
+          );
+
+          if (unobservedStars.length > 0) {
+            const randomStar = unobservedStars[Math.floor(Math.random() * unobservedStars.length)];
+            setPulsingStarId(randomStar.id);
+            setTimeout(() => setPulsingStarId(null), 1500);
+          }
+        }, 3000);
+
+        return () => clearInterval(interval);
+      }, [constellation]);
 
       const handleStarClick = (star) => {
         setActiveStar(star);
         setInputText('');
+        setPulsingStarId(null);
+        setRippleStarId(star.id);
+        setTimeout(() => setRippleStarId(null), 1000);
       };
 
       const handleSaveObservation = () => {
@@ -364,7 +348,7 @@
           ...constellation,
           {
             starId: activeStar.id,
-            text: inputText || '（無言の観測）',
+            text: inputText || '（ただ観測した）',
             timestamp: Date.now(),
           },
         ]);
@@ -372,19 +356,59 @@
         setActiveStar(null);
       };
 
+      const handleSaveConstellationName = () => {
+        if (!constellationName.trim()) return;
+        setSavedName(`${constellationName.trim()}座`);
+        setIsNaming(false);
+      };
+
       const handleReset = () => {
         setConstellation([]);
         setActiveStar(null);
+        setSavedName('');
+        setConstellationName('');
+      };
+
+      const handleDownload = async () => {
+        setIsDownloading(true);
+
+        setTimeout(async () => {
+          try {
+            const captureArea = document.getElementById('capture-area');
+            const canvas = await window.html2canvas(captureArea, {
+              backgroundColor: '#172554',
+              scale: 2,
+              ignoreElements: (element) => element.classList.contains('no-capture'),
+            });
+
+            const url = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `The_Observatory_${savedName || 'log'}.png`;
+            a.click();
+          } catch (error) {
+            console.error('Download failed:', error);
+          } finally {
+            setIsDownloading(false);
+          }
+        }, 200);
       };
 
       return (
-        <main className="relative z-20 w-full h-[100svh] overflow-hidden select-none">
+        <main id="capture-area" className="relative z-20 w-full h-[100svh] overflow-hidden select-none bg-blue-950">
           <div className="absolute top-24 left-0 w-full text-center z-20 pointer-events-none fade-in px-5">
             <h2 className="text-yellow-400 font-serif text-xl tracking-wider mb-1">
-              Observe.
+              The Observatory
             </h2>
-            <h1 className="text-white/90 text-sm font-light tracking-widest">
-              気になる星（部位）をタップ
+            <h1 className="text-white/90 text-xs font-light tracking-widest leading-relaxed">
+              {savedName ? (
+                <span className="text-yellow-400 font-serif text-lg tracking-widest">{savedName}</span>
+              ) : (
+                <React.Fragment>
+                  気になる星をタップして、線を引く。<br />
+                  <span className="opacity-50 text-[10px]">時折瞬く星は、まだ光が当たっていない場所。</span>
+                </React.Fragment>
+              )}
             </h1>
           </div>
 
@@ -404,50 +428,70 @@
                   y1={`${prevStar.y}%`}
                   x2={`${currentStar.x}%`}
                   y2={`${currentStar.y}%`}
-                  stroke="rgba(253, 224, 71, 0.6)"
-                  strokeWidth="1.5"
-                  strokeDasharray="4 4"
+                  stroke="rgba(253, 224, 71, 0.5)"
+                  strokeWidth="1.2"
+                  strokeDasharray="3 4"
                   className="line-draw-animation"
                 />
               );
             })}
           </svg>
 
-          <div className="absolute inset-0 z-20">
+          <div className="absolute inset-0 z-20 mt-6">
             {BODY_STARS.map((star) => {
               const isObserved = constellation.some((item) => item.starId === star.id);
               const isLatest =
                 constellation.length > 0 &&
                 constellation[constellation.length - 1].starId === star.id;
+              const isPulsing = pulsingStarId === star.id;
+              const isBack = star.depth === 'back';
+              const isHidden = star.depth === 'hidden';
 
               return (
                 <button
                   key={star.id}
                   type="button"
-                  className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center group cursor-pointer bg-transparent border-0"
+                  className={`absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center group cursor-pointer bg-transparent border-0 p-3 transition-opacity duration-700 ${
+                    isHidden && !isObserved && !isPulsing
+                      ? 'opacity-0'
+                      : isBack && !isObserved
+                      ? 'opacity-40 hover:opacity-100'
+                      : 'opacity-100'
+                  }`}
                   style={{ left: `${star.x}%`, top: `${star.y}%` }}
                   onClick={() => handleStarClick(star)}
                   aria-label={`${star.name}を観測する`}
                 >
                   <span
-                    className={`text-xs tracking-widest mb-2 transition-all duration-500 ${
-                      isObserved ? 'text-white/60' : 'text-transparent group-hover:text-white/40'
+                    className={`text-[9px] tracking-widest mb-1 transition-all duration-500 ${
+                      isObserved
+                        ? 'text-white/60'
+                        : isHidden
+                        ? 'opacity-0'
+                        : 'text-transparent group-hover:text-white/50'
                     }`}
                   >
                     {star.name}
                   </span>
 
                   <span className="relative">
-                    {isObserved && (
-                      <span className="absolute -inset-3 bg-yellow-400/20 rounded-full animate-pulse"></span>
+                    {(isObserved || isPulsing) && (
+                      <span className={`absolute -inset-3 rounded-full ${isObserved ? 'bg-yellow-400/20 animate-pulse' : 'bg-white/20 animate-ping'}`}></span>
+                    )}
+                    {rippleStarId === star.id && (
+                      <span className="absolute -inset-6 rounded-full border border-yellow-300 animate-ping opacity-50"></span>
                     )}
                     <span
                       className={`block rounded-full transition-all duration-300 ${
                         isLatest
-                          ? 'w-4 h-4 bg-yellow-300 shadow-[0_0_15px_rgba(253,224,71,0.8)]'
+                          ? 'w-3 h-3 bg-yellow-300 shadow-[0_0_12px_rgba(253,224,71,0.8)]'
                           : isObserved
-                          ? 'w-3 h-3 bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]'
-                          : 'w-2 h-2 bg-white/40 group-hover:bg-white/80'
+                          ? 'w-2 h-2 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]'
+                          : isHidden
+                          ? 'w-1 h-1 bg-white/10'
+                          : isBack
+                          ? 'w-1 h-1 bg-white/20 group-hover:bg-white/60'
+                          : 'w-1.5 h-1.5 bg-white/30 group-hover:bg-white/80'
                       }`}
                     ></span>
                   </span>
@@ -457,72 +501,126 @@
           </div>
 
           {constellation.length > 0 && (
-            <div className="absolute bottom-8 left-5 right-5 sm:left-6 sm:right-auto z-20 fade-in max-w-sm">
-              <div className="text-white/40 text-xs tracking-widest mb-2 font-serif">
-                Log
+            <div className="absolute bottom-6 left-5 right-5 sm:left-6 sm:right-auto z-20 fade-in bg-blue-950/45 p-4 rounded-lg backdrop-blur-sm border border-white/10 sm:w-72">
+              <div className="text-white/40 text-xs tracking-widest mb-3 font-serif">
+                Observation Log
               </div>
-              <div className="flex flex-col space-y-2">
-                {constellation.slice(-3).map((record, index) => {
+
+              <div
+                className={`flex flex-col space-y-1.5 pr-2 mb-4 ${isDownloading ? 'overflow-visible' : 'overflow-y-auto custom-scrollbar'}`}
+                style={{ maxHeight: isDownloading ? 'none' : '38vh' }}
+              >
+                {constellation.map((record, index) => {
                   const starName = BODY_STARS.find((star) => star.id === record.starId)?.name;
 
                   return (
-                    <div
-                      key={`${record.timestamp}-${index}`}
-                      className="text-white/80 text-sm tracking-wide flex items-center gap-2"
-                    >
-                      <span className="text-yellow-400 text-xs">●</span>
-                      <span className="opacity-60">{starName}:</span>
+                    <div key={`${record.timestamp}-${index}`} className="text-white/80 text-xs tracking-wide flex items-center gap-2">
+                      <span className="text-yellow-400/80 text-[10px]">●</span>
+                      <span className="opacity-60 min-w-[4.5rem]">{starName}</span>
                       <span>{record.text}</span>
                     </div>
                   );
                 })}
               </div>
 
-              <button
-                type="button"
-                onClick={handleReset}
-                className="mt-6 text-white/30 hover:text-white/60 text-xs tracking-widest transition-colors border-b border-white/20 pb-0.5"
-              >
-                観測をリセット
-              </button>
+              <div className="border-t border-white/10 pt-3 flex flex-col items-center">
+                {savedName ? (
+                  <div className="flex flex-col items-center w-full">
+                    <div className="text-yellow-400 text-sm tracking-widest font-serif mb-4">
+                      {savedName}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleDownload}
+                      disabled={isDownloading}
+                      className="no-capture w-full py-2 bg-yellow-500/20 hover:bg-yellow-500/40 border border-yellow-500/50 rounded text-yellow-100 text-xs tracking-widest transition-colors mb-3"
+                    >
+                      {isDownloading ? '生成中...' : '記録を持ち帰る（画像保存）'}
+                    </button>
+                  </div>
+                ) : constellation.length >= 3 ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsNaming(true)}
+                    className="no-capture w-full py-2 bg-white/10 hover:bg-white/20 rounded text-white/90 text-xs tracking-widest transition-colors mb-2"
+                  >
+                    この星座に名前をつける
+                  </button>
+                ) : (
+                  <div className="text-white/30 text-[10px] tracking-widest mb-2 text-center no-capture">
+                    星を3つ以上繋ぐと<br />星座の名前をつけられます
+                  </div>
+                )}
+
+                <button type="button" onClick={handleReset} className="no-capture text-white/30 hover:text-white/60 text-[10px] tracking-widest transition-colors border-b border-white/20 pb-0.5 mt-1">
+                  星図をリセット
+                </button>
+              </div>
+            </div>
+          )}
+
+          {isNaming && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-950/80 backdrop-blur-md fade-in px-5">
+              <div className="bg-white/5 border border-white/10 p-8 rounded-lg w-full max-w-sm text-center shadow-2xl relative overflow-hidden">
+                <h3 className="text-yellow-400 font-serif text-sm tracking-wider mb-2 relative z-10">
+                  Name your constellation
+                </h3>
+                <p className="text-white/90 text-sm tracking-widest mb-8 relative z-10 leading-relaxed">
+                  今日、あなたが観測した<br />この感覚の繋がりに<br />名前をつけるとしたら？
+                </p>
+
+                <div className="relative z-10 flex items-center justify-center mb-10">
+                  <input
+                    type="text"
+                    value={constellationName}
+                    onChange={(event) => setConstellationName(event.target.value)}
+                    placeholder="例：鳥のように軽い"
+                    className="w-full bg-transparent border-b border-white/30 text-white text-center text-lg pb-2 focus:outline-none focus:border-yellow-400/80 transition-colors placeholder-white/20"
+                    autoFocus
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') handleSaveConstellationName();
+                    }}
+                  />
+                  <span className="text-white/50 text-sm ml-2">座</span>
+                </div>
+
+                <div className="flex justify-center gap-8 relative z-10">
+                  <button type="button" onClick={() => setIsNaming(false)} className="text-white/40 hover:text-white/80 tracking-widest text-xs transition-colors">
+                    やめる
+                  </button>
+                  <button type="button" onClick={handleSaveConstellationName} className="text-white/90 hover:text-yellow-400 tracking-widest text-xs font-bold transition-colors">
+                    名前を刻む
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
           {activeStar && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-950/60 backdrop-blur-sm fade-in px-5">
-              <div className="bg-white/10 border border-white/20 p-6 sm:p-8 rounded-lg w-full max-w-sm text-center shadow-2xl">
-                <h3 className="text-yellow-400 font-serif text-lg tracking-wider mb-2">
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-950/70 backdrop-blur-md fade-in px-5">
+              <div className="bg-white/5 border border-white/10 p-8 rounded-lg w-full max-w-sm text-center shadow-2xl">
+                <h3 className="text-yellow-400 font-serif text-sm tracking-wider mb-2">
                   Observe
                 </h3>
-                <p className="text-white text-xl tracking-widest mb-6">
-                  「{activeStar.name}」は、
-                  <br />
-                  今どんな感じ？
+                <p className="text-white/90 text-lg tracking-widest mb-8 leading-relaxed">
+                  「{activeStar.name}」は、<br />今どんな感じ？
                 </p>
 
                 <textarea
                   value={inputText}
                   onChange={(event) => setInputText(event.target.value)}
-                  placeholder="例：水が流れるように、少し重い 等"
+                  placeholder="言葉を置く（空欄でも可）"
                   rows="3"
-                  className="w-full bg-transparent border-b border-white/40 text-white text-center text-base pb-2 focus:outline-none focus:border-yellow-400 transition-colors mb-8 placeholder-white/25 resize-none"
+                  className="w-full bg-transparent border-b border-white/30 text-white text-center text-base pb-2 focus:outline-none focus:border-yellow-400/80 transition-colors mb-10 placeholder-white/20 resize-none"
                   autoFocus
                 />
 
-                <div className="flex justify-center gap-6">
-                  <button
-                    type="button"
-                    onClick={() => setActiveStar(null)}
-                    className="text-white/50 hover:text-white tracking-widest text-sm transition-colors"
-                  >
+                <div className="flex justify-center gap-8">
+                  <button type="button" onClick={() => setActiveStar(null)} className="text-white/40 hover:text-white/80 tracking-widest text-xs transition-colors">
                     やめる
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleSaveObservation}
-                    className="text-white hover:text-yellow-400 tracking-widest text-sm font-bold transition-colors"
-                  >
-                    記録する
+                  <button type="button" onClick={handleSaveObservation} className="text-white/90 hover:text-yellow-400 tracking-widest text-xs font-bold transition-colors">
+                    星を置く
                   </button>
                 </div>
               </div>
@@ -539,14 +637,12 @@
         <div className="relative w-full min-h-[100svh] font-sans overflow-hidden bg-blue-950">
           <StarryBackground />
 
-          <nav className="fixed top-5 left-1/2 -translate-x-1/2 z-40 flex rounded-full border border-white/15 bg-blue-950/55 backdrop-blur-md p-1 shadow-xl">
+          <nav className="fixed top-5 left-1/2 -translate-x-1/2 z-40 flex rounded-full border border-white/15 bg-blue-950/55 backdrop-blur-md p-1 shadow-xl no-capture">
             <button
               type="button"
               onClick={() => setMode('sheet')}
               className={`rounded-full px-4 py-2 text-xs tracking-widest transition-colors ${
-                mode === 'sheet'
-                  ? 'bg-yellow-300 text-blue-950'
-                  : 'text-white/65 hover:text-white'
+                mode === 'sheet' ? 'bg-yellow-300 text-blue-950' : 'text-white/65 hover:text-white'
               }`}
             >
               観測シート
@@ -555,9 +651,7 @@
               type="button"
               onClick={() => setMode('stars')}
               className={`rounded-full px-4 py-2 text-xs tracking-widest transition-colors ${
-                mode === 'stars'
-                  ? 'bg-yellow-300 text-blue-950'
-                  : 'text-white/65 hover:text-white'
+                mode === 'stars' ? 'bg-yellow-300 text-blue-950' : 'text-white/65 hover:text-white'
               }`}
             >
               星図
