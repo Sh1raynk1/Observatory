@@ -267,8 +267,8 @@
               <TextAreaField label="6. 続かなかった理由、または限界は何でしたか？" value={sheet.limit} onChange={(value) => updateSheet('limit', value)} placeholder="例：やり方が合っているかわからない、痛くなる、習慣にならない" />
               <TextAreaField label="7. 「自分のせい」にしていたことはありますか？" value={sheet.selfBlame} onChange={(value) => updateSheet('selfBlame', value)} placeholder="例：年齢のせい、運動不足のせい、努力が足りないと思っていた" />
               <TextAreaField label="8. もしかすると、身体の構造や使い方の問題かもしれないことはありますか？" value={sheet.structure} onChange={(value) => updateSheet('structure', value)} placeholder="例：力の入り方、姿勢、呼吸、関節の動き方、身体の使い方" />
-              <SelectField label="9. 今日、小さく観測してみたい場所はどこですか？" value={sheet.point} onChange={(value) => updateSheet('point', value)} options={observationPoints} />
-              <SelectField label="10. 次の一歩として、今の自分に合いそうなものはどれですか？" value={sheet.nextStep} onChange={(value) => updateSheet('nextStep', value)} options={nextSteps} />
+              <ChoiceField label="9. 今日、小さく観測してみたい場所はどこですか？" value={sheet.point} onChange={(value) => updateSheet('point', value)} options={observationPoints} />
+              <ChoiceField label="10. 次の一歩として、今の自分に合いそうなものはどれですか？" value={sheet.nextStep} onChange={(value) => updateSheet('nextStep', value)} options={nextSteps} />
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button type="button" onClick={() => setShowMemo(true)} className="w-full sm:w-auto rounded-lg bg-yellow-300 px-5 py-3 text-blue-950 text-sm font-bold tracking-widest hover:bg-yellow-200 transition-colors">
