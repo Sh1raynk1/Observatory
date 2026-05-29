@@ -72,6 +72,7 @@
     const { useState, useEffect } = React;
 
     const SHEET_STORAGE_KEY = 'the_observatory_body_sheet_v1';
+    const STARMAP_STORAGE_KEY = 'the_observatory_star_map_v1';
 
     const BODY_STARS = [
       { id: 'head', name: '頭', x: 50, y: 10, depth: 'front' },
@@ -134,10 +135,10 @@
     ];
 
     const nextSteps = [
-      'まず記録だけする',
-      '小さなセルフケアを試す',
-      '必要なら相談できる場所を探す',
-      '学べる場を探してみる',
+      'まず記録だけしてみる',
+      '小さなセルフケアを試してみる',
+      '誰かに相談することも考えてみる',
+      '身体の使い方を学ぶ場を探してみる',
       '今は何もしないで様子を見る',
     ];
 
@@ -148,6 +149,29 @@
         return { ...INITIAL_SHEET, ...JSON.parse(saved) };
       } catch (error) {
         return INITIAL_SHEET;
+      }
+    }
+
+    function loadSavedStarMap() {
+      try {
+        const saved = window.localStorage.getItem(STARMAP_STORAGE_KEY);
+        if (!saved) {
+          return {
+            constellation: [],
+            savedName: '',
+          };
+        }
+
+        const parsed = JSON.parse(saved);
+        return {
+          constellation: Array.isArray(parsed.constellation) ? parsed.constellation : [],
+          savedName: parsed.savedName || '',
+        };
+      } catch (error) {
+        return {
+          constellation: [],
+          savedName: '',
+        };
       }
     }
 
@@ -235,6 +259,7 @@
     function ObservatorySheet() {
       const [sheet, setSheet] = useState(loadSavedSheet);
       const [showMemo, setShowMemo] = useState(false);
+      const [copyStatus, setCopyStatus] = useState('');
 
       useEffect(() => {
         window.localStorage.setItem(SHEET_STORAGE_KEY, JSON.stringify(sheet));
@@ -243,15 +268,67 @@
       const updateSheet = (key, value) => {
         setSheet((current) => ({ ...current, [key]: value }));
         setShowMemo(false);
+        setCopyStatus('');
       };
 
       const resetSheet = () => {
         setSheet(INITIAL_SHEET);
         setShowMemo(false);
+        setCopyStatus('');
         window.localStorage.removeItem(SHEET_STORAGE_KEY);
       };
 
       const valueOrBlank = (value) => value || 'まだ言葉になっていません';
+
+      const buildMemoText = () => {
+        const pointText = valueOrBlank(sheet.point);
+        const nextStepText = valueOrBlank(sheet.nextStep);
+
+        return [
+          'The Observatory｜今日の観測メモ',
+          '',
+          `今いちばん気になっていること：${valueOrBlank(sheet.concern)}`,
+          `それが出やすい場面：${valueOrBlank(sheet.scene)}`,
+          `やりにくくなっていること：${valueOrBlank(sheet.avoid)}`,
+          `動きやすくなったらしてみたいこと：${valueOrBlank(sheet.hope)}`,
+          `これまで試してきたこと：${valueOrBlank(sheet.tried)}`,
+          `続かなかった理由・しっくりこなかった点：${valueOrBlank(sheet.limit)}`,
+          `自分のせいにしていたこと：${valueOrBlank(sheet.selfBlame)}`,
+          `使い方や構造として観測したいこと：${valueOrBlank(sheet.structure)}`,
+          `今日の観測ポイント：${pointText}`,
+          `次の一歩：${nextStepText}`,
+          '',
+          `今日の観測では、${sheet.point ? `「${sheet.point}」` : '身体の中で気になっている場所'}に小さな手がかりがありそうです。`,
+          'すぐに変えようとする前に、そのサインが出やすい場面や、暮らしの中で少しやりにくくなっていることを、もう少し観測してみてもよさそうです。',
+          `選んだ「次の一歩」は、正解を決めるためのものではなく、今の身体に合う距離感を確かめるための小さな選択です。必要なら、いつでも見直して大丈夫です。`,
+        ].join('\n');
+      };
+
+      const copyMemoText = async () => {
+        const text = buildMemoText();
+
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+          }
+
+          setCopyStatus('コピーしました');
+          setTimeout(() => setCopyStatus(''), 2500);
+        } catch (error) {
+          setCopyStatus('コピーできませんでした');
+          setTimeout(() => setCopyStatus(''), 2500);
+        }
+      };
 
       const downloadMemoImage = async () => {
         const memo = document.getElementById('sheet-memo');
@@ -368,7 +445,7 @@
               />
 
               <ChoiceField
-                label="10. 今の自分にちょうどよさそうな次の一歩はどれですか？"
+                label="10. 今の自分に合う、無理のない「次の一歩」はどれですか？"
                 value={sheet.nextStep}
                 onChange={(value) => updateSheet('nextStep', value)}
                 options={nextSteps}
@@ -419,19 +496,19 @@
 
                 <div className="mt-7 border-t border-white/15 pt-5 text-white/75 text-sm sm:text-base leading-7">
                   <p>
-                    今の観測では、
+                    今日の観測では、
                     {sheet.point ? `「${sheet.point}」` : '身体の中で気になっている場所'}
-                    にやさしく注目してみるとよさそうです。
+                    に小さな手がかりがありそうです。
                   </p>
                   <p className="mt-3">
-                    すぐに変えようとするよりも、出やすい場面や、暮らしの中で少しやりにくくなっていることを記録してみるのもよさそうです。
-                    次の一歩は「
-                    {valueOrBlank(sheet.nextStep)}
-                    」として、今の自分に合う距離感で選んでみてください。
+                    すぐに変えようとする前に、そのサインが出やすい場面や、暮らしの中で少しやりにくくなっていることを、もう少し観測してみてもよさそうです。
+                  </p>
+                  <p className="mt-3">
+                    選んだ「次の一歩」は、正解を決めるためのものではなく、今の身体に合う距離感を確かめるための小さな選択です。必要なら、いつでも見直して大丈夫です。
                   </p>
                 </div>
 
-                <div className="mt-6 no-capture">
+                <div className="mt-6 no-capture grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={downloadMemoImage}
@@ -439,7 +516,20 @@
                   >
                     観測メモを画像で保存
                   </button>
+                  <button
+                    type="button"
+                    onClick={copyMemoText}
+                    className="w-full rounded-lg border border-yellow-300/50 px-5 py-3 text-yellow-100 text-sm font-bold tracking-widest hover:bg-yellow-300/10 transition-colors"
+                  >
+                    観測メモをコピー
+                  </button>
                 </div>
+
+                {copyStatus && (
+                  <p className="no-capture mt-3 text-center text-xs tracking-widest text-yellow-100/80">
+                    {copyStatus}
+                  </p>
+                )}
 
                 <div className="mt-4 no-capture rounded-lg border border-white/15 bg-blue-950/35 p-4 text-white/75 text-sm leading-7">
                   <p>
@@ -454,6 +544,11 @@
                     towaneで相談する
                   </a>
                 </div>
+
+                <div className="mt-4 no-capture rounded-lg border border-white/10 bg-white/5 p-4 text-white/60 text-xs sm:text-sm leading-6">
+                  <p>The ObservatoryのPDF版・おうちで使える観測シートは準備中です。</p>
+                  <p className="mt-1">公開後、このページから案内します。</p>
+                </div>
               </section>
             )}
           </section>
@@ -462,15 +557,27 @@
     }
 
     function StarMap() {
-      const [constellation, setConstellation] = useState([]);
+      const savedStarMap = loadSavedStarMap();
+
+      const [constellation, setConstellation] = useState(savedStarMap.constellation);
       const [activeStar, setActiveStar] = useState(null);
       const [inputText, setInputText] = useState('');
       const [pulsingStarId, setPulsingStarId] = useState(null);
       const [rippleStarId, setRippleStarId] = useState(null);
       const [isNaming, setIsNaming] = useState(false);
       const [constellationName, setConstellationName] = useState('');
-      const [savedName, setSavedName] = useState('');
+      const [savedName, setSavedName] = useState(savedStarMap.savedName);
       const [isDownloading, setIsDownloading] = useState(false);
+
+      useEffect(() => {
+        window.localStorage.setItem(
+          STARMAP_STORAGE_KEY,
+          JSON.stringify({
+            constellation,
+            savedName,
+          })
+        );
+      }, [constellation, savedName]);
 
       useEffect(() => {
         const interval = setInterval(() => {
@@ -514,6 +621,7 @@
       const handleSaveConstellationName = () => {
         if (!constellationName.trim()) return;
         setSavedName(`${constellationName.trim()}座`);
+        setConstellationName('');
         setIsNaming(false);
       };
 
@@ -522,6 +630,7 @@
         setActiveStar(null);
         setSavedName('');
         setConstellationName('');
+        window.localStorage.removeItem(STARMAP_STORAGE_KEY);
       };
 
       const handleDownload = async () => {
