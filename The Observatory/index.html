@@ -71,6 +71,8 @@
   <script type="text/babel">
     const { useState, useEffect } = React;
 
+    const SHEET_STORAGE_KEY = 'the_observatory_body_sheet_v1';
+
     const BODY_STARS = [
       { id: 'head', name: '頭', x: 50, y: 10, depth: 'front' },
       { id: 'eyes', name: '目', x: 50, y: 16, depth: 'front' },
@@ -138,6 +140,16 @@
       '学べる場を探してみる',
       '今は何もしないで様子を見る',
     ];
+
+    function loadSavedSheet() {
+      try {
+        const saved = window.localStorage.getItem(SHEET_STORAGE_KEY);
+        if (!saved) return INITIAL_SHEET;
+        return { ...INITIAL_SHEET, ...JSON.parse(saved) };
+      } catch (error) {
+        return INITIAL_SHEET;
+      }
+    }
 
     function StarryBackground() {
       const [stars, setStars] = useState([]);
@@ -221,8 +233,12 @@
     }
 
     function ObservatorySheet() {
-      const [sheet, setSheet] = useState(INITIAL_SHEET);
+      const [sheet, setSheet] = useState(loadSavedSheet);
       const [showMemo, setShowMemo] = useState(false);
+
+      useEffect(() => {
+        window.localStorage.setItem(SHEET_STORAGE_KEY, JSON.stringify(sheet));
+      }, [sheet]);
 
       const updateSheet = (key, value) => {
         setSheet((current) => ({ ...current, [key]: value }));
@@ -232,6 +248,7 @@
       const resetSheet = () => {
         setSheet(INITIAL_SHEET);
         setShowMemo(false);
+        window.localStorage.removeItem(SHEET_STORAGE_KEY);
       };
 
       const valueOrBlank = (value) => value || 'まだ言葉になっていません';
@@ -280,6 +297,9 @@
               <p>
                 医療的な診断や治療を目的としたものではありません。
                 強い痛み、しびれ、急な症状、日常生活に支障がある場合は、医療機関に相談してください。
+              </p>
+              <p>
+                入力内容はこの端末のブラウザ内に一時保存されます。共有端末では、使用後に「入力をリセット」を押してください。
               </p>
             </div>
 
