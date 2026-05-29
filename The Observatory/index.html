@@ -72,27 +72,27 @@
     const { useState, useEffect } = React;
 
     const BODY_STARS = [
-      { id: 'head', name: 'あたま', x: 50, y: 10, depth: 'front' },
-      { id: 'eyes', name: 'め', x: 50, y: 16, depth: 'front' },
+      { id: 'head', name: '頭', x: 50, y: 10, depth: 'front' },
+      { id: 'eyes', name: '目', x: 50, y: 16, depth: 'front' },
       { id: 'jaw', name: 'あご', x: 50, y: 22, depth: 'front' },
       { id: 'throat', name: 'のど', x: 50, y: 28, depth: 'front' },
-      { id: 'chest', name: 'むね', x: 50, y: 36, depth: 'front' },
+      { id: 'chest', name: '胸', x: 50, y: 36, depth: 'front' },
       { id: 'stomach', name: 'みぞおち', x: 50, y: 46, depth: 'front' },
-      { id: 'belly', name: 'おなか', x: 50, y: 56, depth: 'front' },
-      { id: 'l_shoulder', name: '左かた', x: 28, y: 32, depth: 'front' },
-      { id: 'r_shoulder', name: '右かた', x: 72, y: 32, depth: 'front' },
-      { id: 'l_elbow', name: '左ひじ', x: 18, y: 44, depth: 'front' },
-      { id: 'r_elbow', name: '右ひじ', x: 82, y: 44, depth: 'front' },
-      { id: 'l_wrist', name: '左てくび', x: 14, y: 54, depth: 'front' },
-      { id: 'r_wrist', name: '右てくび', x: 86, y: 54, depth: 'front' },
-      { id: 'l_hand', name: '左て', x: 10, y: 62, depth: 'front' },
-      { id: 'r_hand', name: '右て', x: 90, y: 62, depth: 'front' },
-      { id: 'l_hip', name: '左こし', x: 35, y: 63, depth: 'front' },
-      { id: 'r_hip', name: '右こし', x: 65, y: 63, depth: 'front' },
-      { id: 'l_groin', name: '左そけい', x: 42, y: 66, depth: 'front' },
-      { id: 'r_groin', name: '右そけい', x: 58, y: 66, depth: 'front' },
-      { id: 'l_knee', name: '左ひざ', x: 30, y: 76, depth: 'front' },
-      { id: 'r_knee', name: '右ひざ', x: 70, y: 76, depth: 'front' },
+      { id: 'belly', name: 'お腹', x: 50, y: 56, depth: 'front' },
+      { id: 'l_shoulder', name: '左肩', x: 28, y: 32, depth: 'front' },
+      { id: 'r_shoulder', name: '右肩', x: 72, y: 32, depth: 'front' },
+      { id: 'l_elbow', name: '左肘', x: 18, y: 44, depth: 'front' },
+      { id: 'r_elbow', name: '右肘', x: 82, y: 44, depth: 'front' },
+      { id: 'l_wrist', name: '左手首', x: 14, y: 54, depth: 'front' },
+      { id: 'r_wrist', name: '右手首', x: 86, y: 54, depth: 'front' },
+      { id: 'l_hand', name: '左手', x: 10, y: 62, depth: 'front' },
+      { id: 'r_hand', name: '右手', x: 90, y: 62, depth: 'front' },
+      { id: 'l_hip', name: '左腰', x: 35, y: 63, depth: 'front' },
+      { id: 'r_hip', name: '右腰', x: 65, y: 63, depth: 'front' },
+      { id: 'l_groin', name: '左股関節', x: 42, y: 66, depth: 'front' },
+      { id: 'r_groin', name: '右股関節', x: 58, y: 66, depth: 'front' },
+      { id: 'l_knee', name: '左膝', x: 30, y: 76, depth: 'front' },
+      { id: 'r_knee', name: '右膝', x: 70, y: 76, depth: 'front' },
       { id: 'l_ankle', name: '左足首', x: 28, y: 88, depth: 'front' },
       { id: 'r_ankle', name: '右足首', x: 72, y: 88, depth: 'front' },
       { id: 'l_sole', name: '左足裏', x: 25, y: 95, depth: 'front' },
@@ -100,9 +100,9 @@
       { id: 'occiput', name: '後頭部', x: 50, y: 6, depth: 'back' },
       { id: 'upper_back', name: '背中', x: 50, y: 41, depth: 'back' },
       { id: 'sacrum', name: '仙骨', x: 50, y: 68, depth: 'back' },
-      { id: 'l_scapula', name: '左けんこう骨', x: 38, y: 35, depth: 'back' },
-      { id: 'r_scapula', name: '右けんこう骨', x: 62, y: 35, depth: 'back' },
-      { id: 'space_above', name: 'あたまの上の空間', x: 50, y: 2, depth: 'hidden' },
+      { id: 'l_scapula', name: '左肩甲骨', x: 38, y: 35, depth: 'back' },
+      { id: 'r_scapula', name: '右肩甲骨', x: 62, y: 35, depth: 'back' },
+      { id: 'space_above', name: '頭の上の空間', x: 50, y: 2, depth: 'hidden' },
       { id: 'tanden_deep', name: 'からだの奥の奥', x: 50, y: 61, depth: 'hidden' },
       { id: 'gravity', name: '地球の引力', x: 50, y: 99, depth: 'hidden' },
     ];
@@ -191,25 +191,33 @@
       );
     }
 
-    function SelectField({ label, value, onChange, options }) {
-      return (
-        <label className="block">
-          <span className="block text-white/80 text-sm tracking-wide mb-2">{label}</span>
-          <select
-            value={value}
-            onChange={(event) => onChange(event.target.value)}
-            className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white focus:outline-none focus:border-yellow-300/80 focus:bg-blue-950/80 transition-colors"
-          >
-            <option value="">選択してください</option>
-            {options.map((option) => (
-              <option key={option} value={option} className="bg-blue-950 text-white">
-                {option}
-              </option>
-            ))}
-          </select>
-        </label>
-      );
-    }
+   function ChoiceField({ label, value, onChange, options }) {
+  return (
+    <div className="block">
+      <span className="block text-white/80 text-sm tracking-wide mb-3">{label}</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {options.map((option) => {
+          const isSelected = value === option;
+
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onChange(option)}
+              className={`w-full rounded-lg border px-4 py-3 text-left text-sm leading-6 transition-colors ${
+                isSelected
+                  ? 'border-yellow-300 bg-yellow-300/20 text-yellow-100'
+                  : 'border-white/15 bg-white/10 text-white/75 hover:border-white/35 hover:bg-white/15'
+              }`}
+            >
+              {option}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
     function ObservatorySheet() {
       const [sheet, setSheet] = useState(INITIAL_SHEET);
